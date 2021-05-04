@@ -5,8 +5,9 @@ import pandas as pd
 
 
 def read_lexicon():
-    df = __read_data('lexicon_path')
-    entries = df.values.ravel().tolist()
+    config = read_config()
+    with open(config['lexicon_path']) as f:
+        entries = f.readlines()
     categories = list()
     phrases = list()
     last_category = None
@@ -16,7 +17,7 @@ def read_lexicon():
 
     for entry in map(preprocess_entry, entries):
         if entry.startswith('#'):
-            last_category = entry
+            last_category = entry[1:]
         else:
             categories.append(last_category)
             phrases.append(entry)
