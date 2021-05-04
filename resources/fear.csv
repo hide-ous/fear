@@ -1,0 +1,112 @@
+#words
+abhor
+Abhorrence
+Afraid
+Alarm
+Alarmed
+Angst
+Anguish
+Anxiety
+Anxious
+anxiousness
+Apprehensibility
+Apprehension
+avers
+Aversion
+avoidance
+Avoid
+Awe
+bloodcurdling
+Bugbear
+Concern
+Concernment
+concernedness
+daunt
+dejectedness
+despondence
+despondency
+Dismay
+Despair
+dispiritedness
+disquieted
+Dread
+eschew
+faintheartedness
+Fear
+Fearful
+Fearfulness
+Fearsome
+foreboding
+Fright
+Frightening
+gallow
+hair-raising
+Hazard
+Horror
+Inquietude
+Insecurity
+intimidation
+Jittery
+Jitters
+Jitteriness
+misgiving
+Nervous
+nervousness
+nightmare
+Panic
+Peril
+Phobia
+Phobic
+Qualms
+revulsion
+risk
+Scare
+Scary
+Scaring
+Shock
+sheepishness
+solicitous
+Solicitude
+Sorrow
+spine-chilling
+spine-tingling
+spooky
+Terrified
+Terrifying
+timidity
+timidness
+timorousness
+trembling
+Trepidation
+unease
+uneasiness
+Unsecure
+Woe
+Worries
+Worry
+Worriment
+Worrisome
+#regex
+.*Phobia
+.*phobic
+#phrases
+to bother
+to daunt
+traumatic
+tremble before
+the collywobbles
+the creeps
+the heebie-jeebies
+the shakes
+the willies
+loss of courage
+shrink from
+feel apprehensive about
+feel consternation about
+flinch from
+be in a blue funk about
+cold feet
+cold sweat
+cower before
+cringe from
+Not secure
