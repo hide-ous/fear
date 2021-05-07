@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 
@@ -6,7 +7,7 @@ import pandas as pd
 
 def read_lexicon():
     config = read_config()
-    with open(config['lexicon_path']) as f:
+    with open(os.path.join(config['resources_root'], config['lexicon_path'])) as f:
         entries = f.readlines()
     categories = list()
     phrases = list()
@@ -30,8 +31,57 @@ def read_config():
     return config
 
 
-def __read_data(rel_path_key, usecols=None, sep='\t'):
+def stream_q_comments(usecols=['body', 'id'], chunksize=1000):
+    print("read q comments")
+    for q_comments in stream_df('q_comments_rel_path',
+                                compression='gzip',
+                                usecols=usecols, chunksize=chunksize):
+        yield q_comments
+
+
+def read_q_comments(usecols=['body', 'id']):
+    print("read q comments")
+    return pd.concat((stream_q_comments('q_comments_rel_path',
+                                        compression='gzip', usecols=usecols, chunksize=None)), ignore_index=True)
+
+
+def stream_q_posts(usecols=['title', 'selftext', 'id'], chunksize=1000):
+    print("read q comments")
+    for q_comments in stream_df('q_comments_rel_path',
+                                compression='gzip',
+                                usecols=usecols, chunksize=chunksize):
+        yield q_comments
+
+
+def read_q_posts(usecols=['title', 'selftext', 'id']):
+    print("read q comments")
+    return pd.concat((stream_q_comments('q_comments_rel_path',
+                                        compression='gzip', usecols=usecols, chunksize=None)), ignore_index=True)
+
+
+def read_df(file_key,
+            compression=None,
+            usecols=None,
+            nrows=None):
     config = read_config()
-    df = pd.read_csv(os.path.join(config['data_root'], config[rel_path_key]), sep=sep,
-                     usecols=usecols)
+    data_root = config['data_root']
+    df = pd.read_csv(os.path.join(data_root, config[file_key]),
+                     compression=compression,
+                     usecols=usecols,
+                     nrows=nrows)
     return df
+
+
+def stream_df(file_key,
+              compression=None,
+              usecols=None,
+              chunksize=1000):
+    config = read_config()
+    data_root = config['data_root']
+    for fname in glob.glob(os.path.join(os.path.join(data_root, config[file_key]))):
+        with pd.read_csv(fname,
+                         compression=compression,
+                         usecols=usecols,
+                         chunksize=chunksize) as reader:
+            for df in reader:
+                yield df

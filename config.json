@@ -1,4 +1,7 @@
 {
-  "data_root": ".",
-  "lexicon_path": "resources/fear.csv"
+  "data_root": "./data/",
+  "resources_root": "./resources/",
+  "lexicon_path": "fear.csv",
+  "q_comments_rel_path": "Qauthor_withdefaults/comments/*.gzip",
+  "q_posts_rel_path": "Qauthor_withdefaults/posts/*.gzip"
 }

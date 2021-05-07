@@ -12,4 +12,5 @@ python -m spacy download en_core_web_lg
 ``` 
 
 ### to run analyses
-* scrape_fear.py: find expressions of fear on reddit, using pushshift
+* scrape_fear.py: find expressions of fear on reddit, using the pushshift API
+* find_read.py: find expressions of fear from the timelines of users who posted in QAnon-related subreddits 
