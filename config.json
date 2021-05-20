@@ -3,5 +3,6 @@
   "resources_root": "./resources/",
   "lexicon_path": "fear.csv",
   "q_comments_rel_path": "Qauthor_withdefaults/comments/*.gzip",
-  "q_posts_rel_path": "Qauthor_withdefaults/posts/*.gzip"
+  "q_posts_rel_path": "Qauthor_withdefaults/posts/*.gzip",
+  "author_subreddit_count_rel_path": "reddit_mig_dist/*.gz"
 }
