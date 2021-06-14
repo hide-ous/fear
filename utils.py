@@ -100,6 +100,11 @@ def read_author_subreddit_count():
                 author_dict = json.loads(line)
                 for author, monthly_subreddit_counts in author_dict.items():
                     for subreddit_counts in monthly_subreddit_counts.values():
+                        if not isinstance(subreddit_counts, dict):
+                            subreddit_counts = monthly_subreddit_counts
+                            # author_subreddit_counts[author][subreddit] += count
+                            # print(author, monthly_subreddit_counts)
+                            # continue
                         for subreddit, count in subreddit_counts.items():
                             author_subreddit_counts[author][subreddit] += count
     return author_subreddit_counts
