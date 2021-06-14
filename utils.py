@@ -110,5 +110,12 @@ def read_author_subreddit_count():
     return author_subreddit_counts
 
 
+def read_subreddit_lexicon():
+    config = read_config()
+    with open(os.path.join(config['resources_root'], config['seed_subreddits_rel_path'])) as f:
+        return json.load(f)
+
+
 if __name__ == '__main__':
-    read_author_subreddit_count()
+    # read_author_subreddit_count()
+    print(read_subreddit_lexicon())
