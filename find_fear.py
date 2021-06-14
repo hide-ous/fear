@@ -1,10 +1,11 @@
+import ast
 import os
 import re
 from abc import ABC, abstractmethod
 
 import pandas as pd
 
-from preprocess_text import preprocess_pre_tokenizing
+from preprocess_text import preprocess_pre_tokenizing, get_parser
 from utils import read_lexicon, stream_q_comments, read_config
 
 
@@ -63,5 +64,36 @@ def find_fear_in_quanoners():
                             compression='gzip')
 
 
+def find_chunks_for_fear_in_row(row):
+    spans = ast.literal_eval(row.fear_spans)
+    texts = ast.literal_eval(row.fear_text)
+    doc = row.docs
+    for (span_start_char, span_end_char), fear_text in zip(spans, texts):
+        for sent in doc.sents:
+            if (sent.start_char <= span_start_char) and (sent.end_char >= span_end_char):
+                for noun_chunk in sent.noun_chunks:
+                    yield (span_start_char - sent.start_char,span_end_char - sent.start_char), fear_text, \
+                          'nc', noun_chunk.text, noun_chunk.vector.tolist(), \
+                          sent.text, row.id, row.author, row.subreddit
+                for ne in sent.ents:
+                    yield (span_start_char - sent.start_char,span_end_char - sent.start_char), fear_text, \
+                          "ne", ne.text, ne.vector.tolist(), \
+                          sent.text, row.id, row.author, row.subreddit
+
+
+def find_chunks_for_fear_expressions():
+    config = read_config()
+    df = pd.read_csv(os.path.join(config['data_root'], 'fear_disclosures.csv.gz'), compression='gzip')
+    parser = get_parser()
+    df['docs'] = df.body_preprocessed.apply(parser)
+    df_out = pd.DataFrame(res for (idx, row) in df.iterrows() for res in find_chunks_for_fear_in_row(row))
+    df_out.columns = ['span', 'span_text',
+                      'chunk_type', 'chunk_text', 'chunk_vector',
+                      'sentence_text', 'id', 'author', 'subreddit']
+    print(df_out.head())
+    df_out.to_json(os.path.join(config['data_root'], 'fear_spans.json.gz'), compression='gzip')
+
+
 if __name__ == '__main__':
-    find_fear_in_quanoners()
+    # find_fear_in_quanoners()
+    find_chunks_for_fear_expressions()

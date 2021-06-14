@@ -56,6 +56,7 @@ def read_author_subreddit_count():
 def subreddit_count_matrix(author_subreddit_count, min_subreddits_w_shared_audience=10):
     # compute shared audience
     authors_in_seed_subreddits = find_users_in_seed_subreddits(author_subreddit_count)
+    print('authors_in_seed_subreddits', len(authors_in_seed_subreddits))
     subreddit_author_count = Counter()
     for author, subreddit_counts in tqdm(author_subreddit_count.items(),
                                          "compute shared audience",
@@ -64,17 +65,18 @@ def subreddit_count_matrix(author_subreddit_count, min_subreddits_w_shared_audie
             for subreddit1, subreddit2 in combinations(subreddit_counts.keys(), 2):
                 subreddit_author_count[(subreddit1, subreddit2)] += 1
                 subreddit_author_count[(subreddit2, subreddit1)] += 1
-
+    print(len(subreddit_author_count))
     # filter subreddits with enough shared audience
     subreddits = Counter()
     for subreddit1, subreddit2 in subreddit_author_count.keys():
         if subreddit1 < subreddit2:  # avoid double counting
-            subreddit1 += 1  # number of subreddits with shared audience
+            subreddits[subreddit1] += 1  # number of subreddits with shared audience
     subreddits = {subreddit for subreddit, count in subreddits.items() if count >= min_subreddits_w_shared_audience}
     subreddit_author_count = {(subreddit1, subreddit2): count for (subreddit1, subreddit2), count in
                               subreddit_author_count if (subreddit1 in subreddits) and (subreddit2 in subreddits)}
     subreddit_indices = list(sorted(subreddits))
-
+    print('subreddit_indices', len(subreddit_indices))
+    print('subreddit_author_count', len(subreddit_author_count))
     # transform into sparse matrix
     rows = list()
     columns = list()
