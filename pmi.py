@@ -170,5 +170,5 @@ if __name__ == '__main__':
                     content_distribution_smoothing=content_distribution_smoothing, svd_diag_exponent=svd_diag_exponent)
 
 
-    print(ww_sim('hillary', pmis, tok2id, id2tok))
-    print(ww_sim('obama', pmis, tok2id, id2tok))
+    print(ww_sim('/r/conspiracy', pmis, tok2id, id2tok))
+    print(ww_sim('/r/science', pmis, tok2id, id2tok))
