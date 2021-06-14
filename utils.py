@@ -1,8 +1,6 @@
 import glob
-import gzip
 import json
 import os
-from collections import Counter, defaultdict
 
 import pandas as pd
 
@@ -87,27 +85,6 @@ def stream_df(file_key,
                          chunksize=chunksize) as reader:
             for df in reader:
                 yield df
-
-
-def read_author_subreddit_count():
-    config = read_config()
-    data_root = config['data_root']
-    count_glob = os.path.join(os.path.join(data_root, config['author_subreddit_count_rel_path']))
-    author_subreddit_counts = defaultdict(Counter)
-    for fname in glob.glob(count_glob):
-        with gzip.open(fname, 'r') as f:
-            for line in f:
-                author_dict = json.loads(line)
-                for author, monthly_subreddit_counts in author_dict.items():
-                    for subreddit_counts in monthly_subreddit_counts.values():
-                        if not isinstance(subreddit_counts, dict):
-                            subreddit_counts = monthly_subreddit_counts
-                            # author_subreddit_counts[author][subreddit] += count
-                            # print(author, monthly_subreddit_counts)
-                            # continue
-                        for subreddit, count in subreddit_counts.items():
-                            author_subreddit_counts[author][subreddit] += count
-    return author_subreddit_counts
 
 
 def read_subreddit_lexicon():
