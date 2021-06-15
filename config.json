@@ -5,5 +5,6 @@
   "q_comments_rel_path": "Qauthor_withdefaults/comments/*.gzip",
   "q_posts_rel_path": "Qauthor_withdefaults/posts/*.gzip",
   "author_subreddit_count_rel_path": "reddit_mig_dist/*.gz",
-  "seed_subreddits_rel_path": "subreddit_lexicon.json"
+  "seed_subreddits_rel_path": "subreddit_lexicon.json",
+  "subreddit_info_rel_path": "reddit_subreddits.ndjson"
 }

@@ -28,13 +28,29 @@ def stream_author_subreddit_count():
                         yield author, subreddit_counts
 
 
-def find_users_in_seed_subreddits(author_subreddit_count):
+def find_subreddit_id(seed_subreddits):
+    config = read_config()
+    to_return  = dict()
+    with open(os.path.join(config['data_root'], config['subreddit_info_rel_path']), 'r') as f:
+        for subreddit in f:
+            subreddit_data = json.loads(subreddit)
+            if "/"+ subreddit_data['display_name_prefixed'] in seed_subreddits:
+                to_return["t5_"+subreddit_data['id']]="/"+ subreddit_data['display_name_prefixed']
+    return to_return
+
+
+def get_seed_subreddits():
     subreddit_lexicon = read_subreddit_lexicon()
     seed_subreddits = list()
     for lexicons in subreddit_lexicon.values():
         for subreddits in lexicons.values():
             seed_subreddits.extend(subreddits)
     seed_subreddits = set(seed_subreddits)
+    return seed_subreddits
+
+
+def find_users_in_seed_subreddits(author_subreddit_count, seed_subreddits):
+
     authors_in_seed_subreddits = set()
     for author, subreddit_counts in tqdm(author_subreddit_count.items(),
                                          'filter authors in seed subreddits', len(author_subreddit_count)
@@ -53,9 +69,9 @@ def read_author_subreddit_count():
     return author_subreddit_counts
 
 
-def subreddit_count_matrix(author_subreddit_count, min_subreddits_w_shared_audience=10):
+def subreddit_count_matrix(author_subreddit_count, seed_subreddits, min_subreddits_w_shared_audience=10):
     # compute shared audience
-    authors_in_seed_subreddits = find_users_in_seed_subreddits(author_subreddit_count)
+    authors_in_seed_subreddits = find_users_in_seed_subreddits(author_subreddit_count, seed_subreddits)
     print('authors_in_seed_subreddits', len(authors_in_seed_subreddits))
     subreddit_author_count = Counter()
     for author, subreddit_counts in tqdm(author_subreddit_count.items(),
@@ -93,7 +109,14 @@ def subreddit_count_matrix(author_subreddit_count, min_subreddits_w_shared_audie
 
 if __name__ == '__main__':
     author_subreddit_count = read_author_subreddit_count()
-    counts, subreddit_indices = subreddit_count_matrix(author_subreddit_count)
+    seed_subreddits = get_seed_subreddits()
+
+    id2screen = find_subreddit_id(seed_subreddits)
+    author_subreddit_count = {author: {id2screen[subreddit]:count for subreddit, count in subreddit_count.items()}
+                              for author, subreddit_count in author_subreddit_count.items()}
+
+    counts, subreddit_indices = subreddit_count_matrix(author_subreddit_count, seed_subreddits,
+                                                       min_subreddits_w_shared_audience=10)
 
     config = read_config()
     with open(os.path.join(config['data_root'], 'subreddit_cooccurrence.npy'), 'w+') as f:
