@@ -28,14 +28,14 @@ def stream_author_subreddit_count():
                         yield author, subreddit_counts
 
 
-def find_subreddit_id(seed_subreddits):
+def find_subreddit_id():
     config = read_config()
     to_return  = dict()
-    with open(os.path.join(config['data_root'], config['subreddit_info_rel_path']), 'r') as f:
+    with open(os.path.join(config['data_root'], config['subreddit_info_rel_path']), 'r', encoding='utf8') as f:
         for subreddit in f:
             subreddit_data = json.loads(subreddit)
-            if "/"+ subreddit_data['display_name_prefixed'] in seed_subreddits:
-                to_return["t5_"+subreddit_data['id']]="/"+ subreddit_data['display_name_prefixed']
+            # if "/"+ subreddit_data['display_name_prefixed'] in seed_subreddits:
+            to_return["t5_"+subreddit_data['id']]="/"+ subreddit_data['display_name_prefixed']
     return to_return
 
 
@@ -111,8 +111,9 @@ if __name__ == '__main__':
     author_subreddit_count = read_author_subreddit_count()
     seed_subreddits = get_seed_subreddits()
 
-    id2screen = find_subreddit_id(seed_subreddits)
-    author_subreddit_count = {author: {id2screen[subreddit]:count for subreddit, count in subreddit_count.items()}
+    id2screen = find_subreddit_id()
+    author_subreddit_count = {author: {id2screen[subreddit]:count for subreddit, count in subreddit_count.items()
+                                       if subreddit in id2screen}
                               for author, subreddit_count in author_subreddit_count.items()}
 
     counts, subreddit_indices = subreddit_count_matrix(author_subreddit_count, seed_subreddits,

@@ -83,7 +83,7 @@ def find_chunks_for_fear_in_row(row):
 
 def find_chunks_for_fear_expressions():
     config = read_config()
-    df = pd.read_csv(os.path.join(config['data_root'], 'fear_disclosures.csv.gz'), compression='gzip')
+    df = pd.read_csv(os.path.join(config['data_root'], 'fear_disclosures.csv.gz'), compression='gzip', nrows=1000)
     parser = get_parser()
     df['docs'] = df.body_preprocessed.apply(parser)
     df_out = pd.DataFrame(res for (idx, row) in df.iterrows() for res in find_chunks_for_fear_in_row(row))
