@@ -33,7 +33,7 @@
 [{"LOWER":{"REGEX": "^tremble"}}, {"LOWER":"before"}],
 [{"LOWER":"the"}, {"LOWER": {"IN":["collywobbles", "creeps", "shakes", "willies"]}}],
 [{"LOWER":"the"}, {"LOWER": "heebie"}, {"POS":"PUNCT", "OP":"?"}, {"LOWER": "jeebies"}],
-[{"LOWER": {"IN":["loss", "lack"]}}, {"LOWER":"of"}, {"LOWER":"courage"}, ],
+[{"LOWER": {"IN":["loss", "lack"]}}, {"LOWER":"of"}, {"LOWER":"courage"} ],
 [{"LOWER":{"REGEX": "^shrink"}}, {"LOWER":"from"}],
 [{"LOWER":{"REGEX": "^feel"}}, {"LOWER": {"IN":["apprehensive", "consternation"]}}, {"LOWER":"about"}],
 [{"LOWER":"in"}, {"LOWER": "a"}, {"LOWER": "blue"}, {"LOWER": "funk"}],
