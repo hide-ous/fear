@@ -13,6 +13,7 @@
 {"LOWER":"bugbear"},
 {"LOWER":"bugbear"},
 {"LOWER":{"REGEX": "^concern"}, "POS":{"NOT_IN":["VERB"]}, "_comment": "exclude verbs like concerning"},
+[{"LOWER":{"IN":["n't", "no", "not"]}, "OP":"!"}, {"LOWER":{"REGEX": "^concern"}, "POS":"VERB", "_comment": "include expressions like concerns me; what about concerning me?"},{"LOWER": {"IN": ["me", "us"]}}],
 {"LOWER":{"REGEX": "^daunt"}},
 {"LOWER":{"REGEX": "^deject"}},
 {"LOWER":{"REGEX": "^desponden"}},
