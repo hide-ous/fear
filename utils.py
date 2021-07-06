@@ -45,6 +45,18 @@ def stream_conspiracy_user_subreddits(usecols=['author', 'subreddit'], chunksize
                          usecols=usecols, chunksize=chunksize)
 
 
+def stream_conspiracy_comments(usekeys=['author', 'body', 'id', 'subreddit']):
+    config = read_config()
+    data_root = config['data_root']
+    contributions_path = os.path.join(data_root, config['conspiracy_contributions_rel_path'])
+    with open(contributions_path) as f:
+        for line in f:
+            contribution = json.loads(line)
+            contribution['id'] = contribution.pop('_id')
+            if contribution['id'].startswith('t1_'):
+                yield {k:v for k, v in contribution.items() if k in usekeys}
+
+
 def read_q_comments(usecols=['body', 'id']):
     print("read q comments")
     return pd.concat((stream_q_comments('q_comments_rel_path',

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 import pandas as pd
 
 from preprocess_text import preprocess_pre_tokenizing, get_parser
-from utils import read_lexicon, stream_q_comments, read_config
+from utils import read_lexicon, stream_q_comments, read_config, stream_conspiracy_comments
 
 
 class AbstractMatcher(ABC):
@@ -71,17 +71,18 @@ def find_fear_in_conspiracists():
     fearful_comments = list()
 
     def span_to_text(row):
-        return [row.body_preprocessed[span[0]:span[1]] for span in row.fear_spans]
+        return [row['body_preprocessed'][span[0]:span[1]] for span in row['fear_spans']]
 
-    for df in stream_q_comments(usecols=['subreddit', 'author', 'id', 'body']):
-        df.dropna(inplace=True)
-        df['body_preprocessed'] = df.body.apply(preprocess_pre_tokenizing)
-        df['fear_spans'] = df.body_preprocessed.apply(lambda x: list(matcher.match_spans(x)))
-        df['fear_text'] = df.apply(span_to_text, axis=1)
-        fearful_comments.append(df[df.fear_spans.apply(lambda x: len(x) > 0)])
+    for comment in stream_conspiracy_comments():
+        comment['body_preprocessed'] = preprocess_pre_tokenizing(comment['body'])
+        if not comment['body_preprocessed']: continue
+        comment['fear_spans'] = list(matcher.match_spans(comment['body_preprocessed']))
+        comment['fear_text'] = span_to_text(comment)
+        if len(comment['fear_spans'])>0:
+            fearful_comments.append(comment)
 
-    fearful_comments = pd.concat(fearful_comments, ignore_index=True)
-    fearful_comments.to_csv(os.path.join(config['data_root'], 'fear_disclosures.csv.gz'), index=False,
+    fearful_comments = pd.DataFrame(fearful_comments)
+    fearful_comments.to_csv(os.path.join(config['data_root'], 'conspiracy_fear_disclosures.csv.gz'), index=False,
                             compression='gzip')
 
 
@@ -104,17 +105,18 @@ def find_chunks_for_fear_in_row(row):
 
 def find_chunks_for_fear_expressions():
     config = read_config()
-    df = pd.read_csv(os.path.join(config['data_root'], 'fear_disclosures.csv.gz'), compression='gzip', nrows=1000)
+    df = pd.read_csv(os.path.join(config['data_root'], 'conspiracy_fear_disclosures.csv.gz'), compression='gzip', nrows=1000)
     parser = get_parser()
     df['docs'] = df.body_preprocessed.apply(parser)
     df_out = pd.DataFrame(res for (idx, row) in df.iterrows() for res in find_chunks_for_fear_in_row(row))
     df_out.columns = ['span', 'span_text',
                       'chunk_type', 'chunk_text', 'chunk_vector',
-                      'sentence_text', 'id', 'author', 'subreddit']
+                      'sentence_text', 'id', 'author', ]
     print(df_out.head())
-    df_out.to_json(os.path.join(config['data_root'], 'fear_spans.json.gz'), compression='gzip')
+    df_out.to_json(os.path.join(config['data_root'], 'conspiracy_fear_spans.json.gz'), compression='gzip')
 
 
 if __name__ == '__main__':
     # find_fear_in_quanoners()
+    find_fear_in_conspiracists()
     find_chunks_for_fear_expressions()
