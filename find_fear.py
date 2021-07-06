@@ -64,6 +64,27 @@ def find_fear_in_quanoners():
                             compression='gzip')
 
 
+def find_fear_in_conspiracists():
+    lexicon = read_lexicon()
+    matcher = RegexMatcher(lexicon)
+    config = read_config()
+    fearful_comments = list()
+
+    def span_to_text(row):
+        return [row.body_preprocessed[span[0]:span[1]] for span in row.fear_spans]
+
+    for df in stream_q_comments(usecols=['subreddit', 'author', 'id', 'body']):
+        df.dropna(inplace=True)
+        df['body_preprocessed'] = df.body.apply(preprocess_pre_tokenizing)
+        df['fear_spans'] = df.body_preprocessed.apply(lambda x: list(matcher.match_spans(x)))
+        df['fear_text'] = df.apply(span_to_text, axis=1)
+        fearful_comments.append(df[df.fear_spans.apply(lambda x: len(x) > 0)])
+
+    fearful_comments = pd.concat(fearful_comments, ignore_index=True)
+    fearful_comments.to_csv(os.path.join(config['data_root'], 'fear_disclosures.csv.gz'), index=False,
+                            compression='gzip')
+
+
 def find_chunks_for_fear_in_row(row):
     spans = ast.literal_eval(row.fear_spans)
     texts = ast.literal_eval(row.fear_text)

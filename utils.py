@@ -39,6 +39,12 @@ def stream_q_comments(usecols=['body', 'id'], chunksize=1000):
         yield q_comments
 
 
+def stream_conspiracy_user_subreddits(usecols=['author', 'subreddit'], chunksize=1000):
+    yield from stream_df('conspiracy_user_subreddits_rel_path',
+                         compression=None,
+                         usecols=usecols, chunksize=chunksize)
+
+
 def read_q_comments(usecols=['body', 'id']):
     print("read q comments")
     return pd.concat((stream_q_comments('q_comments_rel_path',

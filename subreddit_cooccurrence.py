@@ -10,33 +10,7 @@ import scipy as sp
 from scipy import sparse
 from tqdm import tqdm
 
-from utils import read_config, read_subreddit_lexicon
-
-
-def stream_author_subreddit_count():
-    config = read_config()
-    data_root = config['data_root']
-    count_glob = os.path.join(os.path.join(data_root, config['author_subreddit_count_rel_path']))
-    for fname in glob.glob(count_glob):
-        with gzip.open(fname, 'r') as f:
-            for line in f:
-                author_dict = json.loads(line)
-                for author, monthly_subreddit_counts in author_dict.items():
-                    for subreddit_counts in monthly_subreddit_counts.values():
-                        if not isinstance(subreddit_counts, dict):
-                            subreddit_counts = monthly_subreddit_counts
-                        yield author, subreddit_counts
-
-
-def find_subreddit_id():
-    config = read_config()
-    to_return  = dict()
-    with open(os.path.join(config['data_root'], config['subreddit_info_rel_path']), 'r', encoding='utf8') as f:
-        for subreddit in f:
-            subreddit_data = json.loads(subreddit)
-            # if "/"+ subreddit_data['display_name_prefixed'] in seed_subreddits:
-            to_return["t5_"+subreddit_data['id']]="/"+ subreddit_data['display_name_prefixed']
-    return to_return
+from utils import read_config, read_subreddit_lexicon, stream_conspiracy_user_subreddits
 
 
 def get_seed_subreddits():
@@ -45,12 +19,11 @@ def get_seed_subreddits():
     for lexicons in subreddit_lexicon.values():
         for subreddits in lexicons.values():
             seed_subreddits.extend(subreddits)
-    seed_subreddits = set(seed_subreddits)
+    seed_subreddits = set(i[3:].lower().replace('/', '') for i in seed_subreddits)
     return seed_subreddits
 
 
 def find_users_in_seed_subreddits(author_subreddit_count, seed_subreddits):
-
     authors_in_seed_subreddits = set()
     for author, subreddit_counts in tqdm(author_subreddit_count.items(),
                                          'filter authors in seed subreddits', len(author_subreddit_count)
@@ -62,11 +35,11 @@ def find_users_in_seed_subreddits(author_subreddit_count, seed_subreddits):
 
 
 def read_author_subreddit_count():
-    author_subreddit_counts = defaultdict(Counter)
-    for author, subreddit_counts in stream_author_subreddit_count():
-        for subreddit, count in subreddit_counts.items():
-            author_subreddit_counts[author][subreddit] += count
-    return author_subreddit_counts
+    author_subreddit_count = defaultdict(Counter)
+    for chunk in stream_conspiracy_user_subreddits():
+        for _, (author, subreddit) in chunk.iterrows():
+            author_subreddit_count[author][subreddit.lower()] += 1
+    return author_subreddit_count
 
 
 def subreddit_count_matrix(author_subreddit_count, seed_subreddits, min_subreddits_w_shared_audience=10):
@@ -110,11 +83,6 @@ def subreddit_count_matrix(author_subreddit_count, seed_subreddits, min_subreddi
 if __name__ == '__main__':
     author_subreddit_count = read_author_subreddit_count()
     seed_subreddits = get_seed_subreddits()
-
-    id2screen = find_subreddit_id()
-    author_subreddit_count = {author: {id2screen[subreddit]:count for subreddit, count in subreddit_count.items()
-                                       if subreddit in id2screen}
-                              for author, subreddit_count in author_subreddit_count.items()}
 
     counts, subreddit_indices = subreddit_count_matrix(author_subreddit_count, seed_subreddits,
                                                        min_subreddits_w_shared_audience=10)
