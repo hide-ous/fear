@@ -2,16 +2,18 @@ import ast
 import os
 import re
 from abc import ABC, abstractmethod
+from itertools import islice
 
 import pandas as pd
+from tqdm import tqdm
+from spacy.matcher import Matcher
 
 from preprocess_text import preprocess_pre_tokenizing, get_parser
 from utils import read_lexicon, stream_q_comments, read_config, stream_conspiracy_comments
 
+tqdm.pandas() # use progress indicators in pandas
 
 class AbstractMatcher(ABC):
-    def __init__(self, lexicon_df=None):
-        self.lexicon_df = lexicon_df
 
     def matches(self, text):
         try:
@@ -33,7 +35,7 @@ class AbstractMatcher(ABC):
 
 class RegexMatcher(AbstractMatcher):
     def __init__(self, lexicon_df=None):
-        super(RegexMatcher, self).__init__(lexicon_df=lexicon_df)
+        self.lexicon_df = lexicon_df
         self.match_re = re.compile(
             r'(\b|^)(?P<fear>' + "|".join(re.escape(entry) for entry in self.lexicon_df.phrase) + r')(\b|$)',
             flags=re.I | re.DOTALL | re.U | re.MULTILINE)
@@ -41,6 +43,23 @@ class RegexMatcher(AbstractMatcher):
     def match_spans(self, text):
         for match in re.finditer(pattern=self.match_re, string=text):
             yield match.span('fear')
+
+
+class RuleMatcher(AbstractMatcher):
+    def __init__(self, nlp, rules=None):
+        self.nlp = nlp
+        self.matcher = Matcher(nlp.vocab)
+        self.rules = rules
+        for name, rule in rules.items():
+            for subrule in rule:
+                if '_comment' in subrule:
+                    subrule.pop('_comment')
+
+            self.matcher.add(key=name, patterns=[rule])
+
+    def match_spans(self, text):
+        doc = self.nlp(text)
+        return [(doc[start].idx, doc[end].idx) for match_id, start, end in self.matcher(doc)]
 
 
 def find_fear_in_quanoners():
@@ -73,15 +92,16 @@ def find_fear_in_conspiracists():
     def span_to_text(row):
         return [row['body_preprocessed'][span[0]:span[1]] for span in row['fear_spans']]
 
-    for comment in stream_conspiracy_comments():
+    for comment in tqdm(stream_conspiracy_comments(), 'stream comments'):
         comment['body_preprocessed'] = preprocess_pre_tokenizing(comment['body'])
         if not comment['body_preprocessed']: continue
         comment['fear_spans'] = list(matcher.match_spans(comment['body_preprocessed']))
         comment['fear_text'] = span_to_text(comment)
-        if len(comment['fear_spans'])>0:
+        if len(comment['fear_spans']) > 0:
             fearful_comments.append(comment)
 
     fearful_comments = pd.DataFrame(fearful_comments)
+    print(fearful_comments.head(), fearful_comments.columns)
     fearful_comments.to_csv(os.path.join(config['data_root'], 'conspiracy_fear_disclosures.csv.gz'), index=False,
                             compression='gzip')
 
@@ -94,24 +114,26 @@ def find_chunks_for_fear_in_row(row):
         for sent in doc.sents:
             if (sent.start_char <= span_start_char) and (sent.end_char >= span_end_char):
                 for noun_chunk in sent.noun_chunks:
-                    yield (span_start_char - sent.start_char,span_end_char - sent.start_char), fear_text, \
+                    yield (span_start_char - sent.start_char, span_end_char - sent.start_char), fear_text, \
                           'nc', noun_chunk.text, noun_chunk.vector.tolist(), \
                           sent.text, row.id, row.author, row.subreddit
                 for ne in sent.ents:
-                    yield (span_start_char - sent.start_char,span_end_char - sent.start_char), fear_text, \
+                    yield (span_start_char - sent.start_char, span_end_char - sent.start_char), fear_text, \
                           "ne", ne.text, ne.vector.tolist(), \
                           sent.text, row.id, row.author, row.subreddit
 
 
 def find_chunks_for_fear_expressions():
     config = read_config()
-    df = pd.read_csv(os.path.join(config['data_root'], 'conspiracy_fear_disclosures.csv.gz'), compression='gzip', nrows=1000)
+    df = pd.read_csv(os.path.join(config['data_root'], 'conspiracy_fear_disclosures.csv.gz'), compression='gzip')
     parser = get_parser()
-    df['docs'] = df.body_preprocessed.apply(parser)
-    df_out = pd.DataFrame(res for (idx, row) in df.iterrows() for res in find_chunks_for_fear_in_row(row))
+    df['docs'] = df.body_preprocessed.progress_apply(parser)
+    df_out = pd.DataFrame(res for (idx, row) in tqdm(df.iterrows(),
+                                                          'processing rows',
+                                                          len(df)) for res in find_chunks_for_fear_in_row(row))
     df_out.columns = ['span', 'span_text',
                       'chunk_type', 'chunk_text', 'chunk_vector',
-                      'sentence_text', 'id', 'author', ]
+                      'sentence_text', 'id', 'author', 'subreddit']
     print(df_out.head())
     df_out.to_json(os.path.join(config['data_root'], 'conspiracy_fear_spans.json.gz'), compression='gzip')
 

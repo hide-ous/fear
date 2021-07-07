@@ -52,9 +52,11 @@ def stream_conspiracy_comments(usekeys=['author', 'body', 'id', 'subreddit']):
     with open(contributions_path) as f:
         for line in f:
             contribution = json.loads(line)
-            contribution['id'] = contribution.pop('_id')
-            if contribution['id'].startswith('t1_'):
-                yield {k:v for k, v in contribution.items() if k in usekeys}
+            if contribution['_id'].startswith('t1_'):
+                contribution['id'] = contribution.pop('_id')
+                if 'subreddit' in usekeys:
+                    contribution['subreddit'] = 'conspiracy'
+                yield {k: v for k, v in contribution.items() if k in usekeys}
 
 
 def read_q_comments(usecols=['body', 'id']):
@@ -110,6 +112,11 @@ def read_subreddit_lexicon():
     with open(os.path.join(config['resources_root'], config['seed_subreddits_rel_path'])) as f:
         return json.load(f)
 
+
+def read_fear_lexicon_rules():
+    config = read_config()
+    with open(os.path.join(config['resources_root'], config['fear_lexicon_rules_rel_path'])) as f:
+        return json.load(f)
 
 if __name__ == '__main__':
     # read_author_subreddit_count()

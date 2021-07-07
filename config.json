@@ -8,5 +8,6 @@
   "seed_subreddits_rel_path": "subreddit_lexicon.json",
   "subreddit_info_rel_path": "reddit_subreddits.ndjson",
   "conspiracy_user_subreddits_rel_path": "ungrouped_deciled_conspirauthor_contribs/*.csv",
-  "conspiracy_contributions_rel_path": "conspiracy_contributions.njson"
+  "conspiracy_contributions_rel_path": "conspiracy_contributions.njson",
+  "fear_lexicon_rules_rel_path": "fear_patterns.json"
 }
