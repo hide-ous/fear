@@ -140,5 +140,5 @@ def find_chunks_for_fear_expressions():
 
 if __name__ == '__main__':
     # find_fear_in_quanoners()
-    find_fear_in_conspiracists()
+    # find_fear_in_conspiracists()
     find_chunks_for_fear_expressions()
