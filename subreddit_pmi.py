@@ -39,7 +39,7 @@ def get_ppmi_matrix(count_matrix, alpha=0.75):
     ppmi_dat_values = []  # positive pointwise mutual information
 
     for idxs in tqdm(
-            zip(count_matrix.nonzero()),
+            zip(*count_matrix.nonzero()),
             total=count_matrix.nnz,
             desc='building ppmi matrix row,col,dat'
     ):
@@ -97,9 +97,9 @@ if __name__ == '__main__':
     pmis = svd_ppmi(counts, embedding_size=embedding_size,
                     content_distribution_smoothing=content_distribution_smoothing, svd_diag_exponent=svd_diag_exponent)
 
-    with open(os.path.join(config['resources_root'], 'subreddit_pmi.npy'), 'w+') as f:
+    with open(os.path.join(config['resources_root'], 'subreddit_pmi.npy'), 'wb+') as f:
         pickle.dump(pmis, f)
-    with open(os.path.join(config['resources_root'], 'subreddit_pmi.idx'), 'w+') as f:
+    with open(os.path.join(config['resources_root'], 'subreddit_pmi.idx'), 'wb+') as f:
         pickle.dump(subreddit_indices, f)
 
     print(ww_sim('/r/conspiracy', pmis, tok2id, id2tok))
