@@ -62,7 +62,7 @@ def subreddit_count_matrix(author_subreddit_count, seed_subreddits, min_subreddi
             subreddits[subreddit1] += 1  # number of subreddits with shared audience
     subreddits = {subreddit for subreddit, count in subreddits.items() if count >= min_subreddits_w_shared_audience}
     subreddit_author_count = {(subreddit1, subreddit2): count for (subreddit1, subreddit2), count in
-                              subreddit_author_count if (subreddit1 in subreddits) and (subreddit2 in subreddits)}
+                              subreddit_author_count.items() if (subreddit1 in subreddits) and (subreddit2 in subreddits)}
     subreddit_indices = list(sorted(subreddits))
     print('subreddit_indices', len(subreddit_indices))
     print('subreddit_author_count', len(subreddit_author_count))
